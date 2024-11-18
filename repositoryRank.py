@@ -12,7 +12,7 @@ class RepositoryActivity:
     deletions: int
     minTimestamp: int | None
     maxTimestamp: int | None
-    score: int
+    score: float
 
     def __init__(self, repository: str):
         self.repository = repository
