@@ -21,13 +21,6 @@ type RepositoryActivity struct {
 	Score        float64
 }
 
-func NewRepositoryActivity(repository string) *RepositoryActivity {
-	return &RepositoryActivity{
-		Repository: repository,
-		Score:      0.00,
-	}
-}
-
 func (r *RepositoryActivity) appendUser(username string) {
 	for _, name := range r.Users {
 		if name == username {
@@ -50,10 +43,6 @@ func (r *RepositoryActivity) AverageFilesByCommits() float64 {
 	return float64(r.Files / r.Commits)
 }
 
-func (r *RepositoryActivity) SetScore(score float64) {
-	r.Score = score
-}
-
 type RankService struct {
 	Repositories map[string]*RepositoryActivity
 }
@@ -62,6 +51,18 @@ func NewRank() *RankService {
 	var rank RankService
 	rank.Repositories = make(map[string]*RepositoryActivity)
 	return &rank
+}
+
+func (rank *RankService) GetOrNewRespositoryActivity(repository string) *RepositoryActivity {
+	activity, ok := rank.Repositories[repository]
+	if ok {
+		return activity
+	}
+	rank.Repositories[repository] = &RepositoryActivity{
+		Repository: repository,
+		Score:      0.00,
+	}
+	return rank.Repositories[repository]
 }
 
 func (rank *RankService) LoadCsvFile() {
@@ -90,31 +91,27 @@ func (rank *RankService) LoadCsvFile() {
 		additions, _ := strconv.Atoi(commit[4])
 		deletions, _ := strconv.Atoi(commit[5])
 
-		_, ok := rank.Repositories[repository]
-		if !ok {
-			rank.Repositories[repository] = NewRepositoryActivity(repository)
-		}
-		rank.Repositories[repository].Commits += 1
-		rank.Repositories[repository].appendUser(username)
-		rank.Repositories[repository].Files += files
-		rank.Repositories[repository].Additions += additions
-		rank.Repositories[repository].Deletions += deletions
+		activity := rank.GetOrNewRespositoryActivity(repository)
+		activity.Commits += 1
+		activity.appendUser(username)
+		activity.Files += files
+		activity.Additions += additions
+		activity.Deletions += deletions
 
-		if rank.Repositories[repository].MinTimestamp == 0 || rank.Repositories[repository].MinTimestamp > timestamp {
-			rank.Repositories[repository].MinTimestamp = timestamp
+		if activity.MinTimestamp == 0 || activity.MinTimestamp > timestamp {
+			activity.MinTimestamp = timestamp
 		}
 
-		if rank.Repositories[repository].MaxTimestamp == 0 || rank.Repositories[repository].MaxTimestamp < timestamp {
-			rank.Repositories[repository].MaxTimestamp = timestamp
+		if activity.MaxTimestamp == 0 || activity.MaxTimestamp < timestamp {
+			activity.MaxTimestamp = timestamp
 		}
 
-		if cont == 10 {
+		if cont == 150 {
 			break
 		}
 		cont++
-
-		// rank.Repositories[repository] = activity
 	}
+	fmt.Printf("Total repositorios: %d\n", len(rank.Repositories))
 }
 
 func (rank *RankService) CalcRankScore() {
@@ -127,10 +124,12 @@ func (rank *RankService) CalcRankScore() {
 	}
 
 	for _, data := range rank.Repositories {
-		data.SetScore(float64(data.ActivityPeriod() / maxPeriod * data.Commits))
-		rank.Repositories[data.Repository] = data
+		data.Score = float64(data.ActivityPeriod()) / float64(maxPeriod) * float64(data.Commits)
+		fmt.Printf("%v - %d - %d - %d\n", data, data.ActivityPeriod(), maxPeriod, data.Commits)
+
 	}
-	fmt.Println(rank.Repositories)
+	fmt.Println(maxPeriod)
+	fmt.Printf("%v\n", rank.Repositories)
 }
 func (rank *RankService) GetTopActiveRepositories() {
 	fmt.Println("Get Top Active Repositories")
