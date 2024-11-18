@@ -79,7 +79,6 @@ func (rank *RankService) LoadCsvFile() {
 		panic(err)
 	}
 
-	cont := 0
 	for line, commit := range csvData {
 		if line == 0 {
 			continue
@@ -105,11 +104,6 @@ func (rank *RankService) LoadCsvFile() {
 		if activity.MaxTimestamp == 0 || activity.MaxTimestamp < timestamp {
 			activity.MaxTimestamp = timestamp
 		}
-
-		if cont == 150 {
-			break
-		}
-		cont++
 	}
 	fmt.Printf("Total repositorios: %d\n", len(rank.Repositories))
 }
@@ -128,12 +122,10 @@ func (rank *RankService) CalcRankScore() {
 		fmt.Printf("%v - %d - %d - %d\n", data, data.ActivityPeriod(), maxPeriod, data.Commits)
 
 	}
-	fmt.Println(maxPeriod)
-	fmt.Printf("%v\n", rank.Repositories)
 }
+
 func (rank *RankService) GetTopActiveRepositories() {
 	fmt.Println("Get Top Active Repositories")
-
 }
 
 func main() {
