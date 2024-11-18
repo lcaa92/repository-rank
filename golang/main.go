@@ -41,7 +41,7 @@ func (r *RepositoryActivity) ActivityPeriod() int {
 }
 
 func (r *RepositoryActivity) AverageFilesByCommits() float64 {
-	return float64(r.Files / r.Commits)
+	return float64(r.Files) / float64(r.Commits)
 }
 
 type RankService struct {
@@ -114,7 +114,7 @@ func (rank *RankService) CalcRankScore() {
 			maxPeriod = data.ActivityPeriod()
 		}
 	}
-
+	fmt.Printf("MaxPeriod: %d\n", maxPeriod)
 	for _, data := range rank.Repositories {
 		data.Score = float64(data.ActivityPeriod()) / float64(maxPeriod) * float64(data.Commits)
 	}
@@ -131,7 +131,13 @@ func (rank *RankService) GetTopActiveRepositories() {
 	})
 
 	for _, repository := range items[0:9] {
-		fmt.Printf("%s - %f\n", rank.Repositories[repository].Repository, rank.Repositories[repository].Score)
+		fmt.Printf(
+			"%s - %f - %f - %d\n",
+			rank.Repositories[repository].Repository,
+			rank.Repositories[repository].Score,
+			rank.Repositories[repository].AverageFilesByCommits(),
+			rank.Repositories[repository].Commits,
+		)
 	}
 }
 
