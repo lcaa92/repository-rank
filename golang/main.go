@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -66,7 +67,6 @@ func (rank *RankService) GetOrNewRespositoryActivity(repository string) *Reposit
 }
 
 func (rank *RankService) LoadCsvFile() {
-	fmt.Println("Load CSV FILE")
 	file, err := os.Open("../commits.csv")
 	if err != nil {
 		log.Fatal("Error on open file", err)
@@ -105,11 +105,9 @@ func (rank *RankService) LoadCsvFile() {
 			activity.MaxTimestamp = timestamp
 		}
 	}
-	fmt.Printf("Total repositorios: %d\n", len(rank.Repositories))
 }
 
 func (rank *RankService) CalcRankScore() {
-	fmt.Println("Calc RankScore")
 	maxPeriod := 0
 	for _, data := range rank.Repositories {
 		if maxPeriod < data.ActivityPeriod() {
@@ -119,19 +117,27 @@ func (rank *RankService) CalcRankScore() {
 
 	for _, data := range rank.Repositories {
 		data.Score = float64(data.ActivityPeriod()) / float64(maxPeriod) * float64(data.Commits)
-		fmt.Printf("%v - %d - %d - %d\n", data, data.ActivityPeriod(), maxPeriod, data.Commits)
-
 	}
 }
 
 func (rank *RankService) GetTopActiveRepositories() {
-	fmt.Println("Get Top Active Repositories")
+	items := make([]string, 0, len(rank.Repositories))
+	for repository := range rank.Repositories {
+		items = append(items, repository)
+	}
+
+	sort.SliceStable(items, func(i, j int) bool {
+		return rank.Repositories[items[i]].Score > rank.Repositories[items[j]].Score
+	})
+
+	for _, repository := range items[0:9] {
+		fmt.Printf("%s - %f\n", rank.Repositories[repository].Repository, rank.Repositories[repository].Score)
+	}
 }
 
 func main() {
-	fmt.Println("Starting")
-
 	rankSrv := NewRank()
 	rankSrv.LoadCsvFile()
 	rankSrv.CalcRankScore()
+	rankSrv.GetTopActiveRepositories()
 }
