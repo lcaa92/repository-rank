@@ -32,10 +32,6 @@ func (r *RepositoryActivity) appendUser(username string) {
 }
 
 func (r *RepositoryActivity) ActivityPeriod() int {
-	if r.MinTimestamp == 0 {
-		return 1
-	}
-
 	duration := float64(r.MaxTimestamp - r.MinTimestamp)
 	return int(math.Ceil(math.Max((duration / 60 / 60 / 24), 1)))
 }
@@ -114,7 +110,6 @@ func (rank *RankService) CalcRankScore() {
 			maxPeriod = data.ActivityPeriod()
 		}
 	}
-	fmt.Printf("MaxPeriod: %d\n", maxPeriod)
 	for _, data := range rank.Repositories {
 		data.Score = float64(data.ActivityPeriod()) / float64(maxPeriod) * float64(data.Commits)
 	}
@@ -130,12 +125,12 @@ func (rank *RankService) GetTopActiveRepositories() {
 		return rank.Repositories[items[i]].Score > rank.Repositories[items[j]].Score
 	})
 
-	for _, repository := range items[0:9] {
+	for _, repository := range items[0:10] {
 		fmt.Printf(
-			"%s - %f - %f - %d\n",
+			"Repo: %s \t Score: %s \t Period (days): %d \t Commits: %d\n",
 			rank.Repositories[repository].Repository,
-			rank.Repositories[repository].Score,
-			rank.Repositories[repository].AverageFilesByCommits(),
+			fmt.Sprintf("%.2f", rank.Repositories[repository].Score),
+			rank.Repositories[repository].ActivityPeriod(),
 			rank.Repositories[repository].Commits,
 		)
 	}
