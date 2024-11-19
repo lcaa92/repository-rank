@@ -63,7 +63,7 @@ class RankService:
             if not activity.minTimestamp or int(timestamp) < activity.minTimestamp:
                 activity.minTimestamp = int(timestamp)
 
-            if not activity.maxTimestamp or int(timestamp) > activity.minTimestamp:
+            if not activity.maxTimestamp or int(timestamp) > activity.maxTimestamp:
                 activity.maxTimestamp = int(timestamp)
 
             activities[repository] = activity
