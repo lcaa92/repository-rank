@@ -23,5 +23,16 @@ It is necessary python3 to run the script: (script use only python standard libr
 python3 repositoryRank.py
 ```
 
+### Runing with Golang
+
+It is alse possible to run the algorithm using Golang script (located in golang directory):
+
+> require go 1.19 or higher
+
+```
+go run main.go
+```
+
+
 # ToDo Extras:
 - Improve tabular result
